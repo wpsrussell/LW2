@@ -1,0 +1,21 @@
+{
+  "name": "%%ORGANISATION_NAME%% AppSuite",
+  "short_name": "OTG AppSuite",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "description": "On-the-Go Safety and Reporting App",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/dVmVg3Pn/favicon-logo-for-LWSApp.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.postimg.cc/dVmVg3Pn/favicon-logo-for-LWSApp.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

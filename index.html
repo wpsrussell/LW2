@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Workplace Support On-The-Go App Safety</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Workplace Support On-The-Go App Safety">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="https://i.postimg.cc/dVmVg3Pn/favicon-logo-for-LWSApp.png">
+<link rel="apple-touch-icon" href="https://i.postimg.cc/dVmVg3Pn/favicon-logo-for-LWSApp.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+<style>
+body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+.page { display: none; }
+.page.active { display: flex; }
+.selectable-item, .long-press-btn, button { -webkit-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.long-press-btn::after { 
+    content: ''; position: absolute; top: 0; left: 0; width: 0; height: 100%; 
+    background-color: rgba(255, 255, 255, 0.3); border-radius: 0.5rem; 
+    transition-property: width; transition-timing-function: linear; 
+}
+.long-press-btn.pressing::after { width: 100%; }
+.slider-thumb::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+.slider-thumb::-moz-range-thumb { width: 24px; height: 24px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+header button svg, .edit-location-btn svg { pointer-events: none; }
+</style>
+</head>
+<body class="bg-gray-900 text-white h-full overflow-hidden">
+<div id="app-container" class="h-full flex flex-col">
+<!-- Main/Visit Page -->
+<div id="mainPage" class="page active h-full flex-col p-4 bg-gray-800 animate-fadeIn">
+
+    <div id="startReminderBanner" class="hidden bg-yellow-600/20 border border-yellow-500 text-yellow-200 text-sm rounded-lg p-3 mb-4 text-center">
+        Reminder: Don't forget to start your timer when you arrive on site.
+    </div>
+
+<header class="flex justify-between items-center mb-4 relative z-10 flex-shrink-0">
+    <div class="flex items-center">
+        <img src="https://i.postimg.cc/dVmVg3Pn/favicon-logo-for-LWSApp.png" alt="Logo" class="h-8 w-8 mr-3 rounded" onerror="this.style.display='none'"> 
+        <h1 class="text-xl font-bold text-blue-400">Workplace Support On-The-Go App Safety</h1>
+    </div>
+<div class="flex items-center space-x-1">
+<button type="button" id="infoBtn" class="p-3 rounded-full hover:bg-gray-700"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+<button type="button" id="settingsBtn" class="p-3 rounded-full hover:bg-gray-700"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2.82l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2.82l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto min-h-0 -mx-4 px-4">
+<div class="flex flex-col h-full">
+<div class="bg-gray-900 rounded-lg p-4 mb-4 flex-grow flex flex-col">
+<h2 class="text-lg font-semibold mb-2 text-gray-300">Select Location</h2>
+<div id="locationList" class="space-y-2 flex-grow overflow-y-auto"></div>
+<button type="button" id="addLocationBtn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><line x1="12" y1="5" y2="19"></line><line x1="5" y1="12" y2="19"></line></svg>Add New Location</button>
+</div>
+<div class="bg-gray-900 rounded-lg p-4 mb-4 flex-shrink-0">
+<div class="flex justify-between items-center mb-2">
+<h2 class="text-lg font-semibold text-gray-300">Visit Duration</h2>
+<span id="durationDisplay" class="text-xl font-bold text-blue-400">0 mins</span>
+</div>
+<input id="durationSlider" type="range" min="0" max="14" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+</div>
+<button type="button" id="arrivedBtn" disabled class="long-press-btn relative w-full bg-gray-700 text-gray-400 font-bold py-4 px-4 rounded-lg text-xl transition-colors duration-300 flex-shrink-0">Select Location & Duration</button>
+</div>
+</div>
+</div>
+<div id="lockedPage" class="page h-full flex-col justify-between items-center p-6 text-center animate-fadeIn">
+<div class="w-full flex justify-end">
+<button type="button" id="panicBtn" class="selectable-item w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full text-white font-bold text-2xl flex items-center justify-center shadow-lg border-4 border-red-800">SOS</button>
+</div>
+<div class="flex-grow flex flex-col justify-center">
+<p class="text-xl text-gray-400">Currently at</p>
+<h2 id="lockedLocationName" class="text-4xl font-bold mt-2 text-blue-400"></h2>
+<div class="my-8">
+<p class="text-2xl text-gray-400">Time Remaining</p>
+<div id="countdownTimer" class="text-7xl font-bold tracking-tighter my-2">00:00:00</div>
+<p class="text-lg text-gray-400">Anticipated Departure: <span id="lockedAnticipatedTime" class="font-semibold"></span></p>
+</div>
+</div>
+<div id="alertActiveContainer" class="hidden w-full mb-4">
+<div class="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-4">
+<h3 class="text-xl font-bold text-red-300">ALERT ACTIVE</h3>
+<p class="text-red-400">Automated alerts have been sent to your contacts.</p>
+</div>
+<button type="button" id="iamSafeBtn" class="long-press-btn relative w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-lg text-xl">I AM SAFE</button>
+</div>
+<div id="normalButtonsContainer" class="w-full space-y-4 mb-4">
+<button type="button" id="extendBtn" class="long-press-btn relative w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-lg text-xl">Extend 10 Mins</button>
+<button type="button" id="departBtn" class="long-press-btn relative w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-4 rounded-lg text-xl">DEPART</button>
+</div>
+</div>
+<div id="settingsPage" class="page h-full flex-col p-4 bg-gray-800 animate-fadeIn">
+<header class="flex justify-between items-center mb-6 relative z-10 flex-shrink-0">
+<h1 class="text-2xl font-bold text-blue-400">Settings</h1>
+<button type="button" id="closeSettingsBtn" class="p-3 rounded-full hover:bg-gray-700"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+</header>
+<div class="flex-1 overflow-y-auto -mx-4 px-4 min-h-0">
+<div class="space-y-4 mb-6">
+<div><label for="workerName" class="block text-sm font-medium text-gray-400">Your Name</label><input type="text" id="workerName" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+<div><label for="workerPhone" class="block text-sm font-medium text-gray-400">Your Phone Number</label><input type="tel" id="workerPhone" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. +64 21 123 4567"></div>
+<div><label for="emergencyName" class="block text-sm font-medium text-gray-400">Emergency Contact Name</label><input type="text" id="emergencyName" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+<div><label for="emergencyPhone" class="block text-sm font-medium text-gray-400">Emergency Contact Phone</label><input type="tel" id="emergencyPhone" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. +64 22 123 4567"></div>
+<div><label for="emergencyEmail" class="block text-sm font-medium text-gray-400">Emergency Contact Email</label><input type="email" id="emergencyEmail" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+<div><label for="escalationName" class="block text-sm font-medium text-gray-400">Escalation Contact Name</label><input type="text" id="escalationName" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+<div><label for="escalationPhone" class="block text-sm font-medium text-gray-400">Escalation Contact Phone</label><input type="tel" id="escalationPhone" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. +64 27 123 4567"></div>
+<div><label for="escalationEmail" class="block text-sm font-medium text-gray-400">Escalation Contact Email</label><input type="email" id="escalationEmail" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+<div><label for="pinCode" class="block text-sm font-medium text-gray-400">Normal 4-Digit PIN</label><input type="password" id="pinCode" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+<div><label for="duressPin" class="block text-sm font-medium text-gray-400">Duress 4-Digit PIN (Silent Alarm)</label><input type="password" id="duressPin" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+<div><label for="googleSheetUrl" class="block text-sm font-medium text-gray-400">Google Sheet Web App URL</label><input type="url" id="googleSheetUrl" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+</div>
+</div>
+<div class="pt-4 flex-shrink-0"><button type="button" id="saveSettingsBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">Save Settings</button></div>
+</div>
+</div>
+
+<!-- Modals -->
+<div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-50">
+    <div id="locationModal" class="hidden bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6 animate-fadeIn max-h-[90vh] overflow-y-auto">
+        <h2 id="locationModalTitle" class="text-xl font-bold mb-4">Add New Location</h2>
+        <div class="space-y-4">
+            <div><label for="locationName" class="block text-sm font-medium text-gray-400">Location Name</label><input type="text" id="locationName" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+            <div><label for="locationAddress" class="block text-sm font-medium text-gray-400">Location Address</label><input type="text" id="locationAddress" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"><button type="button" id="useCurrentLocationBtn" class="mt-2 text-sm text-blue-400 hover:text-blue-300">Use Current Location</button></div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+            <button type="button" id="deleteLocationBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg hidden">Delete</button>
+            <button type="button" id="cancelLocationBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+            <button type="button" id="saveLocationBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save</button>
+        </div>
+    </div>
+
+    <div id="infoModal" class="hidden bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6 animate-fadeIn max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold mb-4">How to Use This App</h2>
+        <div class="text-gray-300 space-y-4">
+            <h3 class="font-semibold text-lg text-blue-400">1. Installation ("Add to Home Screen")</h3>
+            <p>For the best experience, add the app to your phone's home screen. This makes it work like a regular app.</p>
+            <ul class="list-disc list-inside space-y-2">
+                <li><strong>On iPhone (Safari):</strong> Tap the <strong>Share</strong> icon, scroll down, and select <strong>"Add to Home Screen"</strong>.</li>
+                <li><strong>On Android (Chrome):</strong> Tap the <strong>three-dot menu</strong> icon and select <strong>"Install app"</strong> or "Add to Home Screen".</li>
+            </ul>
+
+            <h3 class="font-semibold text-lg text-blue-400">2. First-Time Setup (Crucial)</h3>
+            <p>The first time you open the app, you must configure your settings.</p>
+            <ol class="list-decimal list-inside space-y-1">
+                <li>Tap the <strong>Settings icon</strong> (gear) in the top-right corner.</li>
+                <li>The **Google Sheet URL** field should already be filled in for you.</li>
+                <li>Fill in **all other fields**. For phone numbers, please use the full international format (e.g., `+64 21 123 4567`).</li>
+                <li>Set both a **Normal PIN** and a separate **Duress PIN**.</li>
+                <li>Tap <strong>Save Settings</strong>.</li>
+            </ol>
+
+            <h3 class="font-semibold text-lg text-blue-400">3. Using the App for a Visit</h3>
+             <ol class="list-decimal list-inside space-y-1">
+                <li><strong>Select a Location:</strong> Tap a location from the list.</li>
+                <li><strong>Set Duration:</strong> Use the slider to set how long you expect to be at the location.</li>
+                <li><strong>Start Your Visit:</strong> Press and hold the green <strong>"Start"</strong> button for 1.5 seconds. The screen will lock, and your countdown timer will begin.</li>
+            </ol>
+            
+            <h3 class="font-semibold text-lg text-blue-400">4. Special Note: GPS Tracking</h3>
+            <p>For GPS tracking to work reliably (either for the "Travelling" location or if you become overdue), the app must be **open on your screen**. If you lock your phone or switch to another app, GPS updates may stop.</p>
+
+             <h3 class="font-semibold text-lg text-blue-400">5. While On-Site</h3>
+              <ul class="list-disc list-inside space-y-2">
+                <li><strong>Extend Time:</strong> Press and hold the <strong>"Extend 10 Mins"</strong> button for 1 second and enter your PIN.</li> 
+                <li><strong>Depart Safely:</strong> When you are finished, press and hold the **"DEPART"** button for 1.5 seconds. This ends your safety timer.</li>
+                <li><strong>Panic Alert (SOS):</strong> In an emergency, **triple-tap the red "SOS" button** to send an immediate alert.</li>
+                 <li><strong>Check-ins (If Enabled):</strong> If your administrator has enabled check-ins, a prompt will appear periodically asking "Are you OK?". You have 2 minutes to tap the "I am OK" button. The alert sound will escalate if you don't respond.</li>
+            </ul>
+
+              <h3 class="font-semibold text-lg text-blue-400">6. Alerts & Duress</h3>
+              <ul class="list-disc list-inside space-y-2">
+                <li>If you go overdue or miss a check-in, the system will automatically email your emergency contact.</li>
+                <li><strong>To Cancel an Alert:</strong> Press and hold the <strong>"I AM SAFE"</strong> button for 1 second and enter your **normal PIN**.</li>
+                <li><strong>Silent (Duress) Alert:</strong> If you are being forced to cancel an alert, enter your **Duress PIN** instead. The app will look like it has been cancelled/extended, but it will silently send a high-priority alert to the monitor.</li>
+            </ul>
+
+        </div>
+        <div class="mt-6 flex justify-end">
+            <button type="button" id="closeInfoModalBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Close</button>
+        </div>
+    </div>
+    <div id="pinModal" class="hidden bg-gray-800 rounded-lg shadow-xl w-full max-w-xs p-6 animate-fadeIn text-center">
+         <h2 id="pinModalTitle" class="text-xl font-bold mb-4">Enter PIN</h2>
+         <p id="pinModalPrompt" class="text-gray-400 mb-4">Please enter your 4-digit PIN to proceed.</p>
+         <input type="password" id="pinInput" maxlength="4" class="text-center text-3xl tracking-[1em] w-48 mx-auto bg-gray-900 border border-gray-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" inputmode="numeric">
+         <div class="mt-6 flex justify-end space-x-3">
+            <button type="button" id="cancelPinBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+            <button type="button" id="confirmPinBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Confirm</button>
+         </div>
+    </div>
+    <div id="alertModal" class="hidden bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6 animate-fadeIn text-center">
+        <h2 id="alertModalTitle" class="text-xl font-bold mb-2">Alert</h2>
+        <p id="alertModalMessage" class="text-gray-300 mb-6"></p>
+        <button type="button" id="alertModalOkBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-24">OK</button>
+    </div>
+    <div id="checkinModal" class="hidden bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6 animate-fadeIn text-center">
+        <h2 class="text-2xl font-bold text-yellow-400 mb-4">Are you OK?</h2>
+        <p class="text-lg text-gray-300 mb-4">Please confirm you are safe.</p>
+        <div id="checkinCountdown" class="text-6xl font-bold text-yellow-400 mb-6">2:00</div>
+        <button type="button" id="checkinOkBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-lg text-xl">I am OK</button>
+    </div>
+</div>
+<script>
+    let pages, modals, locationList, arrivedBtn, durationSlider, durationDisplay, infoBtn, settingsBtn, closeSettingsBtn, addLocationBtn, saveSettingsBtn, closeInfoModalBtn, cancelLocationBtn, saveLocationBtn, deleteLocationBtn, useCurrentLocationBtn, panicBtn, iamSafeBtn, departBtn, extendBtn, pinInput, confirmPinBtn, cancelPinBtn, alertModalOkBtn, checkinOkBtn, startReminderBanner;
+    
+    let state = { 
+        settings: { workerName: '', workerPhone: '', emergencyName: '', emergencyPhone: '', emergencyEmail: '', escalationName: '', escalationPhone: '', escalationEmail: '', pinCode: '', duressPin: '', googleSheetUrl: '' }, 
+        locations: [], 
+        selectedLocationId: null, 
+        visitDurationMinutes: 0, 
+        activeVisit: null,
+        pendingUploads: [] 
+    };
+    const DURATION_STEPS = [0, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120, 150, 180, 240, 300];
+    
+    // --- TEMPLATE PLACEHOLDERS ---
+    var FIRST_ALERT_MINUTES = "15";
+    const PRE_ALERT_OFFSET = 2; 
+    var CHECKIN_ENABLED = "%%CHECKIN_ENABLED%%";
+    var CHECKIN_INTERVAL = "%%CHECKIN_INTERVAL%%"; 
+    var ESCALATION_MINUTES = "5";
+    // --- END PLACEHOLDERS ---
+
+    let synth, checkinCountdownInterval;
+    let lastBatteryReportTime = 0; 
+    let mainScreenReminderTimer = null;
+    let wakeLock = null; // --- NEW: Wake Lock ---
+
+    async function initAudio() { if (synth || (Tone.context && Tone.context.state === 'running')) return; try { await Tone.start(); synth = new Tone.Synth().toDestination(); console.log("Audio context started"); } catch (e) { console.error("Could not start audio context:", e); } }
+    async function playSoundAndVibrate(action) {
+        await initAudio();
+        const play = () => {
+             if (!synth && Tone.context && Tone.context.state === 'running') { synth = new Tone.Synth().toDestination(); } 
+             else if (!synth) { console.warn("playSoundAndVibrate: Synth not ready."); return; } 
+
+            const now = Tone.now();
+            switch(action) {
+                case 'arrive': synth.triggerAttackRelease("C4", "8n", now); synth.triggerAttackRelease("G4", "8n", now + 0.2); if ('vibrate' in navigator) navigator.vibrate(50); break;
+                case 'depart': synth.triggerAttackRelease("G4", "8n", now); synth.triggerAttackRelease("C4", "8n", now + 0.2); if ('vibrate' in navigator) navigator.vibrate(50); break;
+                case 'extend': synth.triggerAttackRelease("A4", "16n", now); if ('vibrate' in navigator) navigator.vibrate(50); break;
+                case 'safe': synth.triggerAttackRelease("C5", "8n", now); if ('vibrate' in navigator) navigator.vibrate([50, 50, 50]); break;
+                case 'warning': synth.triggerAttackRelease("E5", "16n", now); synth.triggerAttackRelease("G5", "16n", now + 0.2); if ('vibrate' in navigator) navigator.vibrate([800, 200, 800]); break;
+                case 'panic': synth.triggerAttackRelease("G5", "16n", now); synth.triggerAttackRelease("G5", "16n", now + 0.1); synth.triggerAttackRelease("G5", "16n", now + 0.2); if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 200]); break;
+                case 'checkin': 
+                    if(synth.context.state === 'running'){ 
+                        synth.triggerAttackRelease("A4", "16n", now); 
+                    } 
+                    break; 
+            }
+        };
+        play();
+    }
+    
+    // --- NEW: Screen Wake Lock API functions ---
+    async function requestWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Screen Wake Lock active');
+                wakeLock.addEventListener('release', () => {
+                    console.log('Screen Wake Lock released');
+                });
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+    }
+
+    async function releaseWakeLock() {
+        if (wakeLock !== null) {
+            await wakeLock.release();
+            wakeLock = null;
+        }
+    }
+    // --- END NEW ---
+
+    function navigate(page) { 
+        Object.values(pages).forEach(p => { p.classList.remove('active'); p.classList.add('hidden'); }); 
+        if (pages[page]) { 
+            pages[page].classList.remove('hidden'); 
+            pages[page].classList.add('active'); 
+        }
+
+        if (mainScreenReminderTimer) clearTimeout(mainScreenReminderTimer); 
+        if (startReminderBanner) startReminderBanner.classList.add('hidden'); 
+
+        if (page === 'main') {
+            startReminderTimer(); 
+        }
+    }
+
+    function startReminderTimer() {
+        if (mainScreenReminderTimer) clearTimeout(mainScreenReminderTimer);
+        if (startReminderBanner) startReminderBanner.classList.add('hidden'); 
+
+        mainScreenReminderTimer = setTimeout(() => {
+            if (!state.activeVisit && pages.main.classList.contains('active')) {
+                if (startReminderBanner) startReminderBanner.classList.remove('hidden');
+            }
+        }, 300000); 
+    }
+
+    function showModal(modalKey, onShow) {
+        const modal = modals[modalKey];
+        modals.backdrop.classList.remove('hidden');
+        modals.backdrop.classList.add('flex');
+        Object.values(modals).forEach(m => {
+            if (m !== modals.backdrop && m !== modals[modalKey]) m.classList.add('hidden');
+        });
+        if (modal) {
+            modal.classList.remove('hidden');
+            if (onShow) onShow();
+        }
+    }
+    function hideModals() { modals.backdrop.classList.add('hidden'); modals.backdrop.classList.remove('flex'); }
+    function showAlert(title, message) { document.getElementById('alertModalTitle').textContent = title; document.getElementById('alertModalMessage').textContent = message; showModal('alert'); }
+    
+    function loadState() { 
+        const savedState = JSON.parse(localStorage.getItem('loneWorkerState')); 
+        
+        const defaultState = {
+            settings: { workerName: '', workerPhone: '', emergencyName: '', emergencyPhone: '', emergencyEmail: '', escalationName: '', escalationPhone: '', escalationEmail: '', pinCode: '', duressPin: '', googleSheetUrl: '' }, 
+            locations: [], 
+            selectedLocationId: null, 
+            visitDurationMinutes: 0, 
+            activeVisit: null,
+            pendingUploads: []
+        };
+        
+        // Merge saved state onto default state
+        state = { ...defaultState, ...savedState };
+        // Deep merge settings object
+        state.settings = { ...defaultState.settings, ...(savedState ? savedState.settings : {}) };
+
+        // --- ROBUSTNESS FIX: Ensure locations is an array ---
+        if (!Array.isArray(state.locations)) {
+            console.warn("Locations in localStorage was not an array, resetting.");
+            state.locations = [];
+        }
+        
+        if (savedState && savedState.activeVisit) { 
+            state.activeVisit.startTime = new Date(savedState.activeVisit.startTime); 
+            state.activeVisit.anticipatedDepartureTime = new Date(savedState.activeVisit.anticipatedDepartureTime); 
+        } 
+        
+        const travellingExists = state.locations.some(loc => loc.id === 'loc_travelling_default'); 
+        if (!travellingExists) { 
+            state.locations.push({ 
+                id: 'loc_travelling_default', 
+                name: 'Travelling', 
+                address: 'GPS updates will be sent every 15 minutes.'
+            }); 
+        } 
+        
+        const prefilledUrl = "%%GOOGLE_SHEET_URL%%";
+        if (prefilledUrl.startsWith('http') && !state.settings.googleSheetUrl) {
+            state.settings.googleSheetUrl = prefilledUrl;
+        }
+        saveState(); // Save state once after all initialization
+    }
+
+    function saveState() { localStorage.setItem('loneWorkerState', JSON.stringify(state)); }
+    
+    function renderLocations() {
+        locationList.innerHTML = ''; if (state.locations.length === 0) { locationList.innerHTML = `<p class="text-gray-500 text-center">No locations added yet.</p>`; }
+        state.locations.sort((a,b) => a.name.localeCompare(b.name)).forEach(loc => { 
+            const isSelected = loc.id === state.selectedLocationId; 
+            const locationEl = document.createElement('div'); 
+            locationEl.className = `selectable-item p-3 rounded-lg cursor-pointer border-2 transition-transform duration-100 ${isSelected ? 'bg-blue-900/50 border-blue-500' : 'bg-gray-800 border-transparent hover:border-gray-600'}`; 
+            locationEl.innerHTML = `<div class="flex justify-between items-center"><div><p class="font-semibold">${loc.name}</p><p class="text-sm text-gray-400">${loc.address}</p></div><button type="button" class="edit-location-btn p-2 rounded-full hover:bg-gray-700" data-id="${loc.id}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button></div>`; 
+            locationList.appendChild(locationEl); 
+        });
+    }
+
+    function formatDuration(minutes) { if (minutes < 60) return `${minutes} mins`; const hours = Math.floor(minutes / 60); const mins = minutes % 60; return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`; }
+    function updateArrivedButtonState() { 
+        if (state.selectedLocationId && state.visitDurationMinutes > 0) { 
+            arrivedBtn.disabled = false; 
+            arrivedBtn.classList.remove('bg-gray-700', 'text-gray-400'); 
+            arrivedBtn.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white'); 
+            arrivedBtn.textContent = 'Start (Hold 1.5s)'; 
+        } else { 
+            arrivedBtn.disabled = true; 
+            arrivedBtn.classList.add('bg-gray-700', 'text-gray-400'); 
+            arrivedBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white'); 
+            if (!state.selectedLocationId) { 
+                arrivedBtn.textContent = 'Select Location'; 
+            } else { 
+                arrivedBtn.textContent = 'Set Duration'; 
+            } 
+        } 
+    }
+    
+    function sendToGoogleSheet(data, isRetry = false) {
+        if (!state.settings.googleSheetUrl || !state.settings.googleSheetUrl.startsWith('http')) {
+            console.error("Google Sheet URL is not set.");
+            showAlert("Error", "Google Sheet URL is not configured in settings. Data was not saved.");
+            return Promise.reject("No URL");
+        }
+
+        const payload = {
+            ...data,
+            "Worker Name": data["Worker Name"] || state.settings.workerName,
+            "Worker Phone Number": data["Worker Phone Number"] || state.settings.workerPhone,
+            "Emergency Contact Name": data["Emergency Contact Name"] || state.settings.emergencyName,
+            "Emergency Contact Number": data["Emergency Contact Number"] || state.settings.emergencyPhone,
+            "Emergency Contact Email": data["Emergency Contact Email"] || state.settings.emergencyEmail,
+            "Escalation Contact Name": data["Escalation Contact Name"] || state.settings.escalationName,
+            "Escalation Contact Number": data["Escalation Contact Number"] || state.settings.escalationPhone,
+            "Escalation Contact Email": data["Escalation Contact Email"] || state.settings.escalationEmail
+        };
+
+        const formData = new FormData();
+        for (const key in payload) {
+            formData.append(key, payload[key]);
+        }
+
+        return fetch(state.settings.googleSheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: new URLSearchParams(formData)
+        }).then(() => {
+            console.log('Data sent to Google Sheet:', data);
+            return Promise.resolve(); // Success
+        }).catch(error => {
+            console.error('Error sending data to Google Sheet:', error);
+            // --- UPDATED: Queue 'SAFE' status as well ---
+            if (!isRetry && (data["Alarm Status"] === 'DEPARTED' || data["Alarm Status"] === 'SAFE - MANUALLY CLEARED')) {
+                console.log("Network failed. Queuing report.");
+                state.pendingUploads.push(payload); 
+                saveState();
+                showAlert("Offline", "Report saved. Will upload when you're back online.");
+            } else if (!isRetry) {
+                 showAlert("Network Error", "Failed to send data. Please check connection.");
+            }
+            return Promise.reject(error); // Failure
+        });
+    }
+
+    function withPinVerification(callback, isDuressAction = false) {
+        if (!state.settings.pinCode) { showAlert("PIN Not Set", "Please set a PIN in settings."); return; }
+        showModal('pin');
+        const pinInputEl = document.getElementById('pinInput');
+        pinInputEl.value = '';
+        pinInputEl.focus();
+        
+        const confirmHandler = () => {
+            const pinValue = pinInputEl.value;
+            if (pinValue === state.settings.pinCode) {
+                hideModals();
+                pinInputEl.value = '';
+                callback(false); // Normal PIN entered
+            } else if (isDuressAction && state.settings.duressPin && pinValue === state.settings.duressPin) {
+                hideModals();
+                pinInputEl.value = '';
+                callback(true); // Duress PIN entered
+            } else {
+                showAlert("Incorrect PIN", "The PIN you entered is incorrect.");
+                pinInputEl.value = '';
+                pinInputEl.focus();
+            }
+            cleanup();
+        };
+        const cancelHandler = () => {
+            pinInputEl.value = '';
+            hideModals();
+            cleanup();
+        };
+        const cleanup = () => {
+            document.getElementById('confirmPinBtn').removeEventListener('click', confirmHandler);
+            document.getElementById('cancelPinBtn').removeEventListener('click', cancelHandler);
+        };
+        document.getElementById('confirmPinBtn').addEventListener('click', confirmHandler);
+        document.getElementById('cancelPinBtn').addEventListener('click', cancelHandler);
+    }
+    let visitInterval;
+    function handleArriveLongPress() { playSoundAndVibrate('arrive'); attemptStartVisit(); }
+    
+    function handleDepartLongPress() {
+        playSoundAndVibrate('depart');
+        depart(); // Simple depart
+    }
+    
+    function handleExtendLongPress() {
+        withPinVerification((isDuress) => {
+             if (!state.activeVisit) return; 
+
+             state.activeVisit.anticipatedDepartureTime = new Date(state.activeVisit.anticipatedDepartureTime.getTime() + 10 * 60 * 1000);
+             state.activeVisit.preWarningSent = false;
+             updateLockedScreen(); 
+             saveState(); 
+
+            if (isDuress) {
+                 sendToGoogleSheet({ 
+                     "Arrival Time": state.activeVisit.arrivalTimeForSheet, 
+                     "Alarm Status": 'DURESS_CODE_ACTIVATED', 
+                     "Notes": 'Worker activated silent duress alarm during extend action.',
+                     "GPS Timestamp": new Date().toISOString() // Set alert time
+                 });
+                 console.log("Duress PIN entered for Extend. Sent DURESS_CODE_ACTIVATED.");
+            } else {
+                 playSoundAndVibrate('extend');
+                 sendToGoogleSheet({
+                     "Arrival Time": state.activeVisit.arrivalTimeForSheet,
+                     "Anticipated Departure Time": state.activeVisit.anticipatedDepartureTime.toISOString(),
+                     "Notes": `Extended 10 mins at ${new Date().toISOString()}`,
+                 });
+                 console.log("Normal PIN entered for Extend. Visit extended.");
+            }
+        }, true); 
+    }
+    
+    function handleSafeLongPress() {
+        withPinVerification(iamSafe, true); 
+    }
+
+
+    function attemptStartVisit() {
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => { console.log("GPS permission seems to be granted."); executeStartVisit(); },
+                (error) => {
+                    console.error("Initial GPS check failed:", error.message);
+                    showAlert("GPS Not Available", "Could not access location. Overdue alerts will use the manually entered address. Please check location settings.");
+                    executeStartVisit();
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        } else {
+            showAlert("GPS Not Supported", "Geolocation is not supported by your browser.");
+            executeStartVisit();
+        }
+    }
+    async function executeStartVisit() {
+        if (!navigator.onLine) { showAlert("No Network", "A network connection is required to start a visit."); return; }
+        // --- NEW: Request Wake Lock ---
+        requestWakeLock();
+        
+        lastBatteryReportTime = 0; 
+        let initialBatteryNote = "";
+        if (navigator.getBattery) {
+            try {
+                const battery = await navigator.getBattery();
+                const level = Math.floor(battery.level * 100);
+                 initialBatteryNote = `Battery: ${level}%`; 
+                 lastBatteryReportTime = Date.now();
+                if (level < 20 && !battery.charging) { 
+                    showAlert("Low Battery", `Battery is at ${level}%. It may not last for the duration of this visit.`);
+                    initialBatteryNote += " (LOW)"; 
+                }
+            } catch(e) { console.warn("Could not check battery:", e); }
+        }
+        const location = state.locations.find(l => l.id === state.selectedLocationId);
+        const now = new Date();
+        const anticipatedDepartureTime = new Date(now.getTime() + state.visitDurationMinutes * 60 * 1000);
+        state.activeVisit = {
+            locationId: location.id,
+            startTime: now,
+            anticipatedDepartureTime: anticipatedDepartureTime,
+            arrivalTimeForSheet: now.toISOString(),
+            alertState: 0,
+            preWarningSent: false,
+            lastGpsAttemptTime: null,
+            lastTravelGpsTime: null,
+            nextCheckinTime: (String(CHECKIN_ENABLED) === 'true') ? now.getTime() + (parseInt(CHECKIN_INTERVAL) * 60 * 1000) : null, 
+            batteryAlertSent: initialBatteryNote.includes("(LOW)") 
+        };
+        if (location.name === 'Travelling') {
+            state.activeVisit.lastTravelGpsTime = now.getTime();
+            tryGetGps("Started travelling");
+            showAlert("GPS Tracking Active", "For 'Travelling' to work best, please keep this app open on your screen during your journey.");
+        } else {
+            if (!localStorage.getItem('gpsWarningShown')) {
+                showAlert("GPS Tracking Notice", "For reliable GPS tracking in an emergency, please keep this app open on your screen during your visit.");
+                localStorage.setItem('gpsWarningShown', 'true');
+            }
+        }
+        saveState();
+        sendToGoogleSheet({
+            "Date": now.toLocaleDateString('en-CA'),
+            "Location Name": location.name,
+            "Location Address": location.address,
+            "Arrival Time": state.activeVisit.arrivalTimeForSheet,
+            "Anticipated Departure Time": anticipatedDepartureTime.toISOString(),
+            "Alarm Status": 'ON SITE', 
+            "Notes": initialBatteryNote 
+        });
+        enterLockedScreen();
+    }
+    function enterLockedScreen() {
+        const location = state.locations.find(l => l.id === state.activeVisit.locationId);
+        document.getElementById('lockedLocationName').textContent = location.name;
+        updateLockedScreen();
+        navigate('locked');
+        if (visitInterval) clearInterval(visitInterval);
+        visitInterval = setInterval(tick, 1000);
+    }
+    function updateLockedScreen() {
+        if (!state.activeVisit) return;
+        const now = new Date();
+        const remaining = state.activeVisit.anticipatedDepartureTime.getTime() - now.getTime();
+        if (remaining > 0) {
+            const hours = Math.floor(remaining / 3600000);
+            const minutes = Math.floor((remaining % 3600000) / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            document.getElementById('countdownTimer').textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('countdownTimer').classList.remove('text-red-500');
+        } else {
+            const overdue = now.getTime() - state.activeVisit.anticipatedDepartureTime.getTime();
+            const hours = Math.floor(overdue / 3600000);
+            const minutes = Math.floor((overdue % 3600000) / 60000);
+            const seconds = Math.floor((overdue % 60000) / 1000);
+            document.getElementById('countdownTimer').textContent = `+${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('countdownTimer').classList.add('text-red-500');
+        }
+        document.getElementById('lockedAnticipatedTime').textContent = new Date(state.activeVisit.anticipatedDepartureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'});
+    }
+    
+    // --- UPDATED: Add battery note to depart/iamSafe ---
+    async function getBatteryNote() {
+        if (!navigator.getBattery) {
+            return "";
+        }
+        try {
+            const battery = await navigator.getBattery();
+            const level = Math.floor(battery.level * 100);
+            let note = `Battery: ${level}%`;
+            if (level < 15 && !battery.charging) {
+                note += " (LOW - WARNING)";
+            }
+            return note;
+        } catch (e) {
+            console.warn("Could not check battery:", e);
+            return "";
+        }
+    }
+
+    async function depart() {
+        if (!state.activeVisit) return; 
+        const now = new Date();
+        const batteryNote = await getBatteryNote(); // Get current battery
+        
+        const dataToSend = {
+            "Arrival Time": state.activeVisit.arrivalTimeForSheet,
+            "Actual Departure Time": now.toISOString(),
+            "Alarm Status": 'DEPARTED',
+            "Notes": batteryNote // Add battery note on depart
+        };
+
+        sendToGoogleSheet(dataToSend); // This will now queue if offline
+        // --- NEW: Release Wake Lock ---
+        releaseWakeLock();
+        endVisit();
+    }
+
+    function extendVisit() {
+        if (!state.activeVisit) return; 
+        console.log("ExtendVisit function called (normal PIN verified). Time already updated.");
+    }
+    
+    async function iamSafe(isDuress) { 
+        if (!state.activeVisit) return; 
+        const now = new Date();
+        const batteryNote = await getBatteryNote(); // Get current battery
+        
+        if (isDuress) {
+            sendToGoogleSheet({ 
+                "Arrival Time": state.activeVisit.arrivalTimeForSheet, 
+                "Alarm Status": 'DURESS_CODE_ACTIVATED', 
+                "Notes": `Worker activated silent duress alarm via I AM SAFE button. ${batteryNote}`.trim(),
+                "GPS Timestamp": new Date().toISOString() // Set alert time
+            }); 
+        } else {
+            playSoundAndVibrate('safe');
+            const dataToSend = {
+                "Arrival Time": state.activeVisit.arrivalTimeForSheet, 
+                "Actual Departure Time": now.toISOString(), 
+                "Alarm Status": 'SAFE - MANUALLY CLEARED', 
+                "Notes": `Worker confirmed they are safe after an alert was triggered. ${batteryNote}`.trim()
+            };
+            sendToGoogleSheet(dataToSend); // This will queue if offline
+            showAlert("Confirmation", "Your status has been updated to SAFE.");
+        }
+        // --- NEW: Release Wake Lock ---
+        releaseWakeLock();
+        endVisit(); 
+    }
+    // --- END UPDATED depart/iamSafe ---
+
+    function endVisit() {
+        clearInterval(visitInterval);
+        visitInterval = null;
+        if (checkinCountdownInterval) clearInterval(checkinCountdownInterval); 
+        checkinCountdownInterval = null;
+        state.activeVisit = null;
+        state.selectedLocationId = null;
+        state.visitDurationMinutes = 0;
+        durationSlider.value = 0;
+        durationDisplay.textContent = formatDuration(0);
+        saveState();
+        navigate('main');
+        renderLocations();
+        updateArrivedButtonState();
+        document.getElementById('alertActiveContainer').classList.add('hidden');
+        document.getElementById('normalButtonsContainer').classList.remove('hidden');
+        if(synth) synth.volume.value = 0; 
+        lastBatteryReportTime = 0; 
+    }
+    function tryGetGps(notePrefix = "Overdue GPS") {
+        if (!state.activeVisit) return; 
+        state.activeVisit.lastGpsAttemptTime = new Date().getTime();
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                 if (!state.activeVisit) return; 
+                const { latitude, longitude } = position.coords;
+                // --- === BUG FIX: Use gpsData.longitude === ---
+                sendToGoogleSheet({ "Arrival Time": state.activeVisit.arrivalTimeForSheet, "Last Known GPS": `${latitude},${longitude}`, "GPS Timestamp": new Date().toISOString(), "Notes": `${notePrefix}: Successfully retrieved GPS.` });
+            },
+            (error) => {
+                 if (!state.activeVisit) return; 
+                console.error("GPS Error:", error);
+                sendToGoogleSheet({ "Arrival Time": state.activeVisit.arrivalTimeForSheet, "Notes": `${notePrefix}: Failed to retrieve GPS.` });
+            },
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+        );
+    }
+    
+    // --- UPDATED tick function (Battery Fix) ---
+    async function tick() {
+        if (!state.activeVisit) { clearInterval(visitInterval); visitInterval = null; return; }
+        updateLockedScreen();
+        const now = new Date().getTime();
+        const departureTime = state.activeVisit.anticipatedDepartureTime.getTime();
+        const remainingMinutes = (departureTime - now) / 60000;
+        
+        if (remainingMinutes <= PRE_ALERT_OFFSET && remainingMinutes > 0 && !state.activeVisit.preWarningSent) {
+            state.activeVisit.preWarningSent = true;
+            playSoundAndVibrate('warning');
+        }
+
+        const location = state.locations.find(l => l.id === state.activeVisit.locationId);
+        if (location && location.name === 'Travelling') {
+            const fifteenMinutes = 15 * 60 * 1000;
+            if (!state.activeVisit.lastTravelGpsTime || (now - state.activeVisit.lastTravelGpsTime) >= fifteenMinutes) {
+                tryGetGps("15 minute travelling update");
+                state.activeVisit.lastTravelGpsTime = now;
+            }
+        }
+
+        const overdueMinutes = (now - departureTime) / 60000;
+        if (overdueMinutes > 0) {
+            // First alert trigger
+            if (overdueMinutes >= (parseInt(FIRST_ALERT_MINUTES) || 15) && state.activeVisit.alertState < 2) {
+                state.activeVisit.alertState = 2;
+                sendToGoogleSheet({ "Arrival Time": state.activeVisit.arrivalTimeForSheet, "Alarm Status": 'ALERT SENT', "GPS Timestamp": new Date().toISOString() }); // Set alert timestamp
+                document.getElementById('alertActiveContainer').classList.remove('hidden');
+                document.getElementById('normalButtonsContainer').classList.add('hidden');
+                tryGetGps("First overdue alert GPS");
+            }
+            // Recurring GPS check (e.g., every 20 mins)
+            if (state.activeVisit.lastGpsAttemptTime && (now - state.activeVisit.lastGpsAttemptTime) > 20 * 60 * 1000) {
+                tryGetGps("Recurring overdue check");
+            }
+        }
+
+        if (String(CHECKIN_ENABLED) === 'true' && state.activeVisit.nextCheckinTime && now >= state.activeVisit.nextCheckinTime) {
+            triggerCheckin();
+            state.activeVisit.nextCheckinTime = null; 
+        }
+
+        // --- Battery Check Logic Updated ---
+        const BATTERY_REPORT_INTERVAL = 15 * 60 * 1000; // 15 minutes
+        if (navigator.getBattery && (now - lastBatteryReportTime) > BATTERY_REPORT_INTERVAL) {
+             lastBatteryReportTime = now; 
+            try {
+                const battery = await navigator.getBattery();
+                const level = Math.floor(battery.level * 100);
+                let batteryNote = `Battery: ${level}%`;
+                let batteryStatusChanged = false; 
+                
+                if (level < 15 && !battery.charging) {
+                    batteryNote += " (LOW - WARNING)";
+                    if (!state.activeVisit.batteryAlertSent) {
+                         state.activeVisit.batteryAlertSent = true; 
+                         batteryStatusChanged = true;
+                    }
+                } 
+
+                // --- ALWAYS SEND THE UPDATE ---
+                sendToGoogleSheet({ 
+                    "Arrival Time": state.activeVisit.arrivalTimeForSheet, 
+                    "Notes": batteryNote 
+                });
+                // --- END FIX ---
+                
+                if (batteryStatusChanged) {
+                     saveState(); 
+                }
+
+            } catch(e) { console.warn("Could not check battery:", e); }
+        }
+    }
+    // --- END UPDATED tick ---
+
+    // --- UPDATED triggerPanicAlert (OTG v1.5 - BUG FIX) ---
+    function triggerPanicAlert() {
+        if (!state.activeVisit) return; 
+        playSoundAndVibrate('panic');
+        showAlert("PANIC ALERT SENT", "An immediate alert has been sent to your emergency contact.");
+        const sendPanic = (gpsData) => {
+             if (!state.activeVisit) return; 
+            const data = { 
+                "Arrival Time": state.activeVisit.arrivalTimeForSheet, 
+                "Alarm Status": 'EMERGENCY - PANIC BUTTON', 
+                "Notes": 'Panic button activated by worker.',
+                "GPS Timestamp": new Date().toISOString() // --- === ADD THIS LINE === ---
+            };
+            if (gpsData) {
+                // --- === BUG FIX: Was `longitude`, changed to `gpsData.longitude` === ---
+                data["Last Known GPS"] = `${gpsData.latitude},${gpsData.longitude}`;
+                data["GPS Timestamp"] = new Date().toISOString();
+                data.Notes += ' GPS successfully retrieved.';
+            } else {
+                data.Notes += ' Failed to retrieve GPS on panic.';
+            }
+            sendToGoogleSheet(data);
+            document.getElementById('alertActiveContainer').classList.remove('hidden');
+            document.getElementById('normalButtonsContainer').classList.add('hidden');
+        };
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => sendPanic(position.coords),
+                () => sendPanic(null),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            sendPanic(null);
+        }
+    }
+    // --- END UPDATED triggerPanicAlert ---
+    
+    function triggerCheckin() {
+        showModal('checkin');
+        let remaining = 120; 
+        const totalDuration = 120; 
+        const countdownEl = document.getElementById('checkinCountdown');
+        countdownEl.textContent = '2:00';
+
+        if (checkinCountdownInterval) clearInterval(checkinCountdownInterval);
+
+        initAudio().then(() => {
+            if (!synth) synth = new Tone.Synth().toDestination();
+            synth.volume.value = -20; 
+        });
+        
+        if ('vibrate' in navigator) navigator.vibrate(200); 
+
+        checkinCountdownInterval = setInterval(() => {
+            remaining--;
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            countdownEl.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+
+            // --- Escalation Logic ---
+            const elapsedRatio = (totalDuration - remaining) / totalDuration; 
+            
+            if (synth && elapsedRatio >= 0.5) {
+                const volumeRatio = (elapsedRatio - 0.5) * 2; 
+                const gain = volumeRatio * 0.9 + 0.1; 
+                synth.volume.value = Tone.gainToDb(gain); 
+            } else if (synth) {
+                 synth.volume.value = -20; 
+            }
+
+            if (remaining <= 30 && remaining % 2 === 0 && 'vibrate' in navigator) {
+                 navigator.vibrate([300, 100, 300]); 
+            } else if (remaining > 30 && remaining % 5 === 0 && 'vibrate' in navigator) {
+                 navigator.vibrate(200); 
+            }
+            
+             if (remaining <= 60 && remaining % 3 === 0) { 
+                 playSoundAndVibrate('checkin'); 
+             } else if (remaining > 60 && remaining % 10 === 0) { 
+                  playSoundAndVibrate('checkin');
+             }
+            // --- End Escalation Logic ---
+
+
+            if (remaining <= 0) {
+                clearInterval(checkinCountdownInterval);
+                checkinCountdownInterval = null;
+                hideModals();
+                 if (!state.activeVisit) return; 
+                sendToGoogleSheet({ "Arrival Time": state.activeVisit.arrivalTimeForSheet, "Alarm Status": 'MISSED_CHECKIN', "Notes": 'Worker missed a scheduled check-in.', "GPS Timestamp": new Date().toISOString() });
+                document.getElementById('alertActiveContainer').classList.remove('hidden');
+                document.getElementById('normalButtonsContainer').classList.add('hidden');
+                if(synth) synth.volume.value = 0; 
+            }
+        }, 1000);
+    }
+
+    function handleCheckinOK() {
+        clearInterval(checkinCountdownInterval);
+        checkinCountdownInterval = null; 
+        hideModals();
+        
+        if ('vibrate' in navigator) {
+            navigator.vibrate([50, 50, 50]); 
+        }
+
+         if (!state.activeVisit) return; 
+        state.activeVisit.nextCheckinTime = new Date().getTime() + (parseInt(CHECKIN_INTERVAL) * 60 * 1000); 
+        saveState();
+        if(synth) synth.volume.value = 0; 
+    }
+
+    function initEventListeners() {
+        document.body.addEventListener('pointerdown', initAudio, { once: true });
+        settingsBtn.addEventListener('click', () => {
+            Object.keys(state.settings).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) { 
+                    input.value = state.settings[key];
+                    if (key === 'googleSheetUrl' && input.value) {
+                         input.disabled = true;
+                         input.classList.add('bg-gray-800', 'text-gray-500');
+                    } else if (key === 'googleSheetUrl') {
+                        input.disabled = false;
+                        input.classList.remove('bg-gray-800', 'text-gray-500');
+                    }
+                }
+            });
+            navigate('settings');
+        });
+        closeSettingsBtn.addEventListener('click', () => navigate('main'));
+        infoBtn.addEventListener('click', () => showModal('info'));
+        closeInfoModalBtn.addEventListener('click', hideModals);
+        alertModalOkBtn.addEventListener('click', hideModals);
+        checkinOkBtn.addEventListener('click', handleCheckinOK);
+
+        saveSettingsBtn.addEventListener('click', () => {
+            Object.keys(state.settings).forEach(key => {
+                const input = document.getElementById(key);
+                if (input && !input.disabled) state.settings[key] = input.value;
+            });
+            
+            // --- NEW: Mandatory PIN Check ---
+            if (!state.settings.pinCode || state.settings.pinCode.length !== 4 || !state.settings.duressPin || state.settings.duressPin.length !== 4) {
+               showAlert("Setup Required", "Please enter a valid 4-digit Normal PIN and 4-digit Duress PIN.");
+               return; // Do not save or exit
+            }
+            // --- END NEW ---
+
+            saveState();
+            showAlert("Success", "Settings have been saved.");
+            navigate('main'); // This will trigger syncs
+        });
+        addLocationBtn.addEventListener('click', () => {
+            showModal('location', () => {
+                document.getElementById('locationModalTitle').textContent = 'Add New Location';
+                document.getElementById('locationName').value = '';
+                document.getElementById('locationAddress').value = '';
+                document.getElementById('deleteLocationBtn').classList.add('hidden');
+                document.querySelector('#saveLocationBtn').dataset.id = '';
+            });
+        });
+        locationList.addEventListener('click', e => { 
+            const editBtn = e.target.closest('.edit-location-btn'); 
+            if (editBtn) { 
+                e.stopPropagation(); 
+                const locId = editBtn.dataset.id; 
+                const location = state.locations.find(l => l.id === locId); 
+                showModal('location', () => { 
+                    document.getElementById('locationModalTitle').textContent = 'Edit Location'; 
+                    document.getElementById('locationName').value = location.name; 
+                    document.getElementById('locationAddress').value = location.address; 
+                    
+                    if (locId === 'loc_travelling_default') {
+                        document.getElementById('deleteLocationBtn').classList.add('hidden');
+                    } else {
+                        document.getElementById('deleteLocationBtn').classList.remove('hidden'); 
+                    }
+                    
+                    document.querySelector('#saveLocationBtn').dataset.id = locId; 
+                    document.querySelector('#deleteLocationBtn').dataset.id = locId; 
+                }); 
+            } else {
+                const item = e.target.closest('.selectable-item');
+                if (item) {
+                    const locId = item.querySelector('.edit-location-btn').dataset.id;
+                    state.selectedLocationId = locId; 
+                    if('vibrate' in navigator) navigator.vibrate(20);
+                    renderLocations(); 
+                    updateArrivedButtonState();
+                }
+            }
+        });
+        cancelLocationBtn.addEventListener('click', hideModals);
+        saveLocationBtn.addEventListener('click', () => {
+            const id = document.querySelector('#saveLocationBtn').dataset.id;
+            const name = document.getElementById('locationName').value.trim();
+            const address = document.getElementById('locationAddress').value.trim();
+
+            if (!name || !address) { showAlert("Missing Info", "Please provide both a name and an address for the location."); return; }
+            if (id) {
+                const index = state.locations.findIndex(l => l.id === id);
+                 if (index > -1) state.locations[index] = { ...state.locations[index], name, address }; 
+            } else {
+                state.locations.push({ id: `loc_${Date.now()}`, name, address }); 
+            }
+            saveState();
+            renderLocations();
+            hideModals();
+        });
+        deleteLocationBtn.addEventListener('click', (e) => {
+            const id = e.target.dataset.id;
+            if (id === 'loc_travelling_default') { showAlert('Cannot Delete', 'The "Travelling" location cannot be deleted.'); return; }
+            state.locations = state.locations.filter(l => l.id !== id);
+            if (state.selectedLocationId === id) { state.selectedLocationId = null; }
+            saveState();
+            renderLocations();
+            updateArrivedButtonState();
+            hideModals();
+        });
+        useCurrentLocationBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) { showAlert("Not Supported", "Geolocation is not supported by your browser."); return; }
+            useCurrentLocationBtn.textContent = "Getting location...";
+            useCurrentLocationBtn.disabled = true;
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            document.getElementById('locationAddress').value = data.display_name || `${latitude}, ${longitude}`;
+                        }).catch(() => {
+                            showAlert("Error", "Could not fetch address. Using coordinates instead.");
+                            document.getElementById('locationAddress').value = `${latitude}, ${longitude}`;
+                        }).finally(() => {
+                            useCurrentLocationBtn.textContent = "Use Current Location";
+                            useCurrentLocationBtn.disabled = false;
+                        });
+                },
+                () => {
+                    showAlert("Error", "Unable to retrieve your location.");
+                    useCurrentLocationBtn.textContent = "Use Current Location";
+                    useCurrentLocationBtn.disabled = false;
+                },
+                 { timeout: 10000 } 
+            );
+        });
+        durationSlider.addEventListener('input', (e) => {
+            state.visitDurationMinutes = DURATION_STEPS[parseInt(e.target.value)];
+            durationDisplay.textContent = formatDuration(state.visitDurationMinutes);
+            updateArrivedButtonState();
+        });
+        let tapCount = 0;
+        let tapTimer = null;
+        panicBtn.addEventListener('click', () => {
+            tapCount++;
+            if (tapCount === 1) {
+                tapTimer = setTimeout(() => { tapCount = 0; }, 1500);
+            }
+            if (tapCount === 3) {
+                clearTimeout(tapTimer);
+                tapCount = 0;
+                triggerPanicAlert();
+            }
+        });
+        
+
+        const applyLongPress = (element, callback, duration = 1500) => {
+            let timer;
+            let startX, startY;
+            const tolerance = 10; 
+            
+             const styleId = `pseudo-style-${element.id}`;
+             let pseudoElementStyle = document.getElementById(styleId);
+             if (!pseudoElementStyle) {
+                 pseudoElementStyle = document.createElement('style');
+                 pseudoElementStyle.id = styleId;
+                 document.head.appendChild(pseudoElementStyle); 
+             }
+             pseudoElementStyle.textContent = `#${element.id}::after { transition-duration: ${duration / 1000}s; }`;
+
+
+            const start = (e) => {
+                if (element.disabled) return;
+                e.preventDefault(); 
+                if (e.type === 'touchstart' && e.touches.length > 0) {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else if (e.type === 'mousedown') {
+                     startX = e.clientX;
+                     startY = e.clientY;
+                }
+                element.classList.add('pressing');
+                clearTimeout(timer); 
+                timer = setTimeout(() => {
+                    if (element.classList.contains('pressing')) {
+                         callback(); 
+                    }
+                    clearTimeout(timer); 
+                    timer = null;
+                    element.classList.remove('pressing');
+                }, duration);
+            };
+            const cancel = () => {
+                clearTimeout(timer);
+                timer = null;
+                element.classList.remove('pressing');
+            };
+            const move = (e) => {
+                if (!timer) return; 
+                let currentX, currentY;
+                 if (e.type === 'touchmove' && e.touches.length > 0) {
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+                 } else if (e.type === 'mousemove') {
+                     currentX = e.clientX;
+                     currentY = e.clientY;
+                 } else { return; }
+
+                const deltaX = Math.abs(currentX - startX);
+                const deltaY = Math.abs(currentY - startY);
+                if (deltaX > tolerance || deltaY > tolerance) { cancel(); }
+            };
+            element.removeEventListener('mousedown', start);
+            element.removeEventListener('mouseup', cancel);
+            element.removeEventListener('mouseleave', cancel);
+            element.removeEventListener('touchstart', start);
+            element.removeEventListener('touchend', cancel);
+            element.removeEventListener('touchcancel', cancel);
+            element.removeEventListener('touchmove', move);
+            element.removeEventListener('mousemove', move);
+
+            element.addEventListener('mousedown', start);
+            element.addEventListener('mouseup', cancel);
+            element.addEventListener('mouseleave', cancel);
+            element.addEventListener('touchstart', start, { passive: false });
+            element.addEventListener('touchend', cancel);
+            element.addEventListener('touchcancel', cancel);
+            element.addEventListener('touchmove', move, { passive: false });
+            element.addEventListener('mousemove', move); 
+        };
+
+        // Apply durations
+        applyLongPress(arrivedBtn, handleArriveLongPress, 1500); // 1.5s - No PIN
+        applyLongPress(departBtn, handleDepartLongPress, 1500);   // 1.5s - No PIN
+        applyLongPress(extendBtn, handleExtendLongPress, 1000);   // 1s - Needs PIN
+        applyLongPress(iamSafeBtn, handleSafeLongPress, 1000);     // 1s - Needs PIN
+    }
+    
+    function init() {
+        pages = { main: document.getElementById('mainPage'), locked: document.getElementById('lockedPage'), settings: document.getElementById('settingsPage') };
+        modals = { 
+            backdrop: document.getElementById('modalBackdrop'), 
+            location: document.getElementById('locationModal'), 
+            info: document.getElementById('infoModal'), 
+            pin: document.getElementById('pinModal'), 
+            alert: document.getElementById('alertModal'), 
+            checkin: document.getElementById('checkinModal')
+        };
+        locationList = document.getElementById('locationList');
+        arrivedBtn = document.getElementById('arrivedBtn');
+        durationSlider = document.getElementById('durationSlider');
+        durationDisplay = document.getElementById('durationDisplay');
+        infoBtn = document.getElementById('infoBtn');
+        settingsBtn = document.getElementById('settingsBtn');
+        closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        addLocationBtn = document.getElementById('addLocationBtn');
+        saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        closeInfoModalBtn = document.getElementById('closeInfoModalBtn');
+        cancelLocationBtn = document.getElementById('cancelLocationBtn');
+        saveLocationBtn = document.getElementById('saveLocationBtn');
+        deleteLocationBtn = document.getElementById('deleteLocationBtn');
+        useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
+        panicBtn = document.getElementById('panicBtn');
+        iamSafeBtn = document.getElementById('iamSafeBtn');
+        departBtn = document.getElementById('departBtn');
+        extendBtn = document.getElementById('extendBtn');
+        alertModalOkBtn = document.getElementById('alertModalOkBtn');
+        checkinOkBtn = document.getElementById('checkinOkBtn');
+        startReminderBanner = document.getElementById('startReminderBanner');
+        
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered.', reg)).catch(err => console.log('SW reg failed:', err));
+            });
+        } 
+        loadState(); 
+        updateArrivedButtonState(); 
+
+        // --- v1.11: Mandatory PIN Check on Init ---
+        const pinInvalid = !state.settings.pinCode || state.settings.pinCode.length !== 4;
+        const duressInvalid = !state.settings.duressPin || state.settings.duressPin.length !== 4;
+
+        if (pinInvalid || duressInvalid) {
+            // Redirect to settings immediately
+            navigate('settings');
+            // Disable the close button visually (opacity) and pointer events
+            closeSettingsBtn.style.opacity = '0.5';
+            closeSettingsBtn.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                showAlert("Welcome / Setup Required", "To ensure your safety, please set your Name, Phone, and Security PINs before using the app.");
+            }, 500);
+        } else {
+             // Normal load
+            if (state.activeVisit) {
+                enterLockedScreen();
+            } else {
+                navigate('main'); 
+                renderLocations();
+            } 
+        }
+        // --- END v1.11 Check ---
+
+        initEventListeners(); 
+        
+        // Hide inactive pages
+        Object.keys(pages).forEach(key
+=> { 
+            // Don't hide settings if we just forced it open
+            if (key === 'settings' && (pinInvalid || duressInvalid)) return; 
+            
+            if (pages[key] && !pages[key].classList.contains('active')) { 
+                pages[key].classList.add('hidden'); 
+            } 
+        });
+    }
+    window.addEventListener('load', init);
+    </script>
+</body>
+</html>
+

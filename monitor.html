@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%%ORGANISATION_NAME%% Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes flash-red { 0%, 100% { background-color: #991b1b; } 50% { background-color: #ef4444; } }
+        @keyframes flash-purple { 0%, 100% { background-color: #5b21b6; } 50% { background-color: #a78bfa; } }
+        .flashing-alert { animation: flash-red 1s infinite; }
+        .flashing-duress { animation: flash-purple 1s infinite; }
+        .gps-stale { color: #facc15; font-weight: 600; }
+        /* Style for Pre-Alert Overdue */
+        .border-pre-alert { border-color: #f59e0b; /* amber-500 */ } 
+        /* Log panel styling */
+        #logPanel { max-height: 150px; }
+        #logPanel p { margin-bottom: 0.25rem; border-bottom: 1px solid #374151; /* gray-700 */ padding-bottom: 0.25rem; }
+        #logPanel p:last-child { border-bottom: none; }
+    </style>
+</head>
+<body class="bg-gray-800 text-white h-full overflow-hidden flex flex-col">
+
+<!-- SETUP_PAGE_START -->
+<div id="setupPage" class="h-full flex items-center justify-center p-4 bg-gray-900">
+    <div class="w-full max-w-md text-center">
+        <h1 class="text-3xl font-bold text-blue-400 mb-4">Monitoring Dashboard Setup</h1>
+        <p class="text-gray-400 mb-6">Enter the Google Sheet Web App URL and the Secret Key to begin monitoring.</p>
+        <div class="space-y-4">
+            <div>
+                <label for="googleSheetUrl" class="sr-only">Google Sheet Web App URL</label>
+                <input type="url" id="googleSheetUrl" class="block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Paste Web App URL here">
+            </div>
+            <div>
+                <label for="secretKey" class="sr-only">Secret Key</label>
+                <input type="password" id="secretKey" class="block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter Secret Key">
+            </div>
+            <button type="button" id="saveUrlBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">Start Monitoring</button>
+        </div>
+    </div>
+</div>
+<!-- SETUP_PAGE_END -->
+
+<div id="dashboardPage" class="h-full flex flex-col hidden">
+    <header class="flex-shrink-0 bg-gray-900 shadow-lg z-10" style="-webkit-app-region: drag">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <img src="%%LOGO_URL%%" alt="Logo" class="h-8 w-8 mr-3 rounded" onerror="this.style.display='none'"> 
+                    <h1 class="text-2xl font-bold text-blue-400">%%ORGANISATION_NAME%% Monitor</h1>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <!-- --- Notification Button --- -->
+                    <button type="button" id="enableNotificationsBtn" title="Enable Desktop Notifications" class="p-2 rounded-full hover:bg-gray-700 hidden">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </button>
+                    <span id="notificationStatus" class="text-xs text-gray-500"></span> 
+                    <!-- --- End Notification Button --- -->
+                    <span id="statusIndicator" class="h-3 w-3 rounded-full bg-gray-500" title="Connection Status"></span>
+                    <span id="lastUpdated" class="text-sm text-gray-500"></span>
+                    <!-- RESET_BUTTON_START -->
+                    <button type="button" id="resetUrlBtn" class="p-2 rounded-full hover:bg-gray-700"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2.82l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2.82l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <!-- RESET_BUTTON_END -->
+                </div>
+            </div>
+        </div>
+         <!-- --- Session Log Area --- -->
+        <div class="bg-gray-700 px-4 py-2 border-t border-gray-600">
+             <details>
+                 <summary class="cursor-pointer text-xs text-gray-400 hover:text-white">Session Event Log</summary>
+                 <div id="logPanel" class="mt-2 text-xs text-gray-300 overflow-y-auto bg-gray-800 p-2 rounded max-h-[150px]">
+                     <p>Session started.</p>
+                 </div>
+             </details>
+        </div>
+         <!-- --- End Session Log Area --- -->
+    </header>
+    <main class="flex-1 overflow-y-auto p-4">
+        <div id="sizeWarningBanner" class="hidden bg-yellow-600 text-white p-3 rounded-lg mb-4 flex justify-between items-center">
+            <p><strong>Warning:</strong> The database exceeds 2,500 rows. Please advise the administrator to trim the database for optimal performance.</p>
+            <button type="button" id="closeWarningBtn" class="ml-4 text-2xl font-bold">×</button>
+        </div>
+        <div id="workerList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Worker cards will be inserted here -->
+        </div>
+    </main>
+</div>
+
+<div id="alertOverlay" class="hidden fixed inset-0 z-50 flex-col items-center justify-center flashing-alert text-white p-8">
+    <h2 class="text-8xl font-bold animate-pulse">ALERT!</h2>
+    <div id="alertDetails" class="mt-8 text-center text-2xl bg-black bg-opacity-30 p-6 rounded-lg">
+    </div>
+    <button type="button" id="acknowledgeBtn" class="mt-12 bg-white text-red-700 font-bold py-4 px-8 rounded-lg text-3xl shadow-2xl">Acknowledge Alert</button>
+</div>
+
+<div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-40">
+    <div id="alertModal" class="hidden bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+         <h2 id="alertModalTitle" class="text-xl font-bold mb-2">Alert</h2>
+        <p id="alertModalMessage" class="text-gray-300 mb-6"></p>
+        <button type="button" id="alertModalOkBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-24">OK</button>
+    </div>
+    <div id="resolveModal" class="hidden bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6">
+        <h2 class="text-xl font-bold mb-4 text-yellow-400">Resolve Alert</h2>
+        <p class="text-gray-300 mb-4">You are about to manually resolve the alert for <strong id="resolveWorkerName"></strong>. This action will clear their alert status and remove them from the dashboard.</p>
+        <p class="text-gray-400 mb-2 text-sm">To confirm, please type the worker's name:</p>
+        <input type="text" id="resolveConfirmInput" class="block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500" autocomplete="off">
+        <div class="mt-6 flex justify-end space-x-3">
+            <button type="button" id="cancelResolveBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+            <button type="button" id="confirmResolveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg" data-name="" data-arrival="">Confirm Resolve</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let setupPage, dashboardPage, googleSheetUrlInput, saveUrlBtn, resetUrlBtn, workerList, statusIndicator, lastUpdatedEl, alertOverlay, alertDetails, acknowledgeBtn, modalBackdrop, alertModal, alertModalTitle, alertModalMessage, alertModalOkBtn, secretKeyInput, sizeWarningBanner, closeWarningBtn, resolveModal, resolveWorkerName, resolveConfirmInput, cancelResolveBtn, confirmResolveBtn;
+    let logPanel, enableNotificationsBtn, notificationStatus; 
+    let sheetUrl = '';
+    let secretKey = '';
+    let pollingInterval;
+    let lastKnownStatuses = {};
+    let alarm;
+    let updateChime;
+    const sessionLogHistory = []; 
+    const MAX_LOG_ENTRIES = 50; 
+    let notificationPermission = 'default'; 
+
+
+    function navigate(page) {
+        if (page === 'setup') {
+            if (setupPage) setupPage.classList.remove('hidden');
+            dashboardPage.classList.add('hidden');
+        } else if (page === 'dashboard') {
+            if (setupPage) setupPage.classList.add('hidden'); 
+            dashboardPage.classList.remove('hidden');
+            dashboardPage.classList.add('flex');
+        }
+    }
+    
+    function showModal(modal, onShow) {
+        modalBackdrop.classList.remove('hidden');
+        modalBackdrop.classList.add('flex');
+        alertModal.classList.add('hidden');
+        resolveModal.classList.add('hidden');
+        if(modal) {
+            modal.classList.remove('hidden');
+        }
+        if(onShow) onShow();
+    }
+    function hideModals() {
+        modalBackdrop.classList.add('hidden');
+        modalBackdrop.classList.remove('flex');
+        alertModal.classList.add('hidden');
+        resolveModal.classList.add('hidden');
+    }
+    function showAlert(title, message) { 
+        if (!alertModalTitle) { console.error("showAlert called before elements were initialized."); return; }
+        alertModalTitle.textContent = title; 
+        alertModalMessage.textContent = message; 
+        showModal(alertModal);
+    }
+    
+    async function initAudio() {
+        if (alarm) return;
+        try {
+            await Tone.start();
+            alarm = new Tone.Synth({ oscillator: { type: "square" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.1 } }).toDestination();
+            updateChime = new Tone.Synth().toDestination();
+            console.log("Audio context for alarm started.");
+        } catch (e) {
+             console.error("Could not start audio context:", e);
+             showAlert("Audio Error", "Could not initialize audio for alerts. Please check browser permissions.");
+        }
+    }
+    
+    function playUpdateSound() {
+        initAudio().then(() => {
+            if (!updateChime) return;
+            const now = Tone.now();
+            updateChime.triggerAttackRelease("A4", "16n", now);
+            updateChime.triggerAttackRelease("C5", "16n", now + 0.2);
+        });
+    }
+    
+    function playAlarm(worker) {
+        initAudio().then(() => {
+            if (!alarm) return;
+            if (window.electron) window.electron.sendAlert();
+            if (!alarm.loop) {
+                alarm.loop = new Tone.Loop(time => {
+                    alarm.triggerAttackRelease("C5", "8n", time);
+                }, "4n").start(0);
+            }
+             if (Tone.Transport.state !== 'started') {
+                 Tone.Transport.start();
+             }
+            alertDetails.innerHTML = '<p class="font-bold text-4xl">' + worker['Worker Name'] + '</p><p>at ' + worker['Location Name'] + '</p><p class="mt-4 text-red-300 font-bold">' + 
+                worker['Alarm Status'].replace(/_/g, ' ') + '</p>';
+            alertOverlay.classList.remove('hidden', 'flashing-duress', 'flashing-alert');
+            alertOverlay.classList.add('flex');
+            if (worker['Alarm Status'] === 'DURESS_CODE_ACTIVATED') {
+                alertOverlay.classList.add('flashing-duress');
+            } else {
+                alertOverlay.classList.add('flashing-alert');
+            }
+            acknowledgeBtn.dataset.arrivalTime = worker['Arrival Time'];
+            acknowledgeBtn.dataset.workerName = worker['Worker Name'];
+        });
+    }
+    
+    function stopAlarm() {
+        if (Tone.Transport.state === 'started') {
+            Tone.Transport.stop();
+            Tone.Transport.cancel();
+            if(alarm && alarm.loop) {
+                alarm.loop.dispose();
+                alarm.loop = null;
+            }
+        }
+        alertOverlay.classList.add('hidden');
+        alertOverlay.classList.remove('flex');
+    }
+
+    function fetchData() {
+        if (!sheetUrl || !secretKey) return;
+        statusIndicator.classList.remove('bg-green-500', 'bg-red-500');
+        statusIndicator.classList.add('bg-yellow-500');
+        
+        const script = document.createElement('script');
+        const callbackName = 'jsonp_callback_' + Date.now();
+        let timer; 
+
+        const cleanupJsonp = () => {
+             clearTimeout(timer);
+             delete window[callbackName];
+             if(document.body.contains(script)) {
+                 document.body.removeChild(script);
+             }
+        };
+        
+        window[callbackName] = function(data) {
+            cleanupJsonp();
+            
+            if (data.status === 'error' && data.message.includes('Access Denied')) {
+                console.error("Access Denied. Check Secret Key.");
+                statusIndicator.classList.remove('bg-yellow-500', 'bg-green-500');
+                statusIndicator.classList.add('bg-red-500');
+                lastUpdatedEl.textContent = 'Access Denied';
+                showAlert("Access Denied", "The Secret Key is incorrect. Please contact your administrator.");
+                clearInterval(pollingInterval);
+                return;
+            }
+            
+            if (Array.isArray(data)) {
+                statusIndicator.classList.remove('bg-yellow-500', 'bg-red-500');
+                statusIndicator.classList.add('bg-green-500');
+                lastUpdatedEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                if (data.length >= 2500) {
+                    sizeWarningBanner.classList.remove('hidden');
+                } else {
+                    sizeWarningBanner.classList.add('hidden'); 
+                }
+                processData(data);
+            } else {
+                console.error("Received non-array data, likely an error from the script:", data);
+                statusIndicator.classList.remove('bg-yellow-500', 'bg-green-500');
+                statusIndicator.classList.add('bg-red-500');
+                lastUpdatedEl.textContent = 'Data error';
+            }
+        };
+        
+        script.src = sheetUrl + '?callback=' + callbackName + '&token=' + encodeURIComponent(secretKey);
+        
+        script.onerror = () => {
+            cleanupJsonp();
+            console.error("Fetch error: JSONP request failed. Check the URL and script deployment settings.");
+            statusIndicator.classList.remove('bg-yellow-500', 'bg-green-500');
+            statusIndicator.classList.add('bg-red-500');
+            lastUpdatedEl.textContent = 'Update failed';
+             console.error( "Connection Failed: Could not fetch data." );
+        };
+
+        timer = setTimeout(() => {
+            if (window[callbackName]) { 
+                console.error("JSONP Request Timed Out");
+                cleanupJsonp();
+                 statusIndicator.classList.remove('bg-yellow-500', 'bg-green-500');
+                 statusIndicator.classList.add('bg-red-500');
+                 lastUpdatedEl.textContent = 'Timeout';
+            }
+        }, 20000); 
+        
+        document.body.appendChild(script);
+    }
+
+    function processData(data) {
+        const activeStatuses = ["ON SITE", "ALERT SENT", "MISSED_CHECKIN", "EMAIL_1_SENT", "EMAIL_2_SENT", "EMAIL_3_SENT", "EMERGENCY - PANIC BUTTON", "DURESS_CODE_ACTIVATED", "ESCALATION_SENT"];
+        const activeWorkers = data.filter(worker => activeStatuses.includes(worker['Alarm Status']));
+        
+        const statusPriority = {
+            "DURESS_CODE_ACTIVATED": 1,
+            "EMERGENCY - PANIC BUTTON": 2,
+            "ESCALATION_SENT": 3,
+            "MISSED_CHECKIN": 4,
+            "EMAIL_3_SENT": 5,
+            "EMAIL_2_SENT": 6,
+            "EMAIL_1_SENT": 7,
+            "ALERT SENT": 8,
+            "ON SITE": 9
+        };
+        
+        activeWorkers.sort((a,b) => (statusPriority[a['Alarm Status']] || 99) - (statusPriority[b['Alarm Status']] || 99) || a['Worker Name'].localeCompare(b['Worker Name']));
+        
+        renderWorkers(activeWorkers);
+        checkForNewAlerts(activeWorkers); // Check after rendering
+    }
+
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return 'Never';
+        const now = Date.now();
+        const past = new Date(timestamp).getTime();
+        if (isNaN(past)) return 'Invalid Date'; 
+
+        const diffSeconds = Math.round((now - past) / 1000);
+        
+        if (diffSeconds < 0) return 'Just now'; 
+
+        const diffMinutes = Math.round(diffSeconds / 60);
+        const diffHours = Math.round(diffMinutes / 60);
+
+        if (diffSeconds < 60) return `${diffSeconds}s ago`;
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        return `> ${Math.floor(diffHours / 24)}d ago`;
+    }
+    
+    function renderWorkers(workers) {
+        workerList.innerHTML = '';
+        if (workers.length === 0) {
+            workerList.innerHTML = '<div class="text-center text-gray-500 mt-10 md:col-span-2 lg:col-span-3"><p class="text-xl">No active workers found.</p><p>The dashboard is polling for updates.</p></div>';
+            return;
+        }
+        
+        const now = new Date(); // Get current time once for efficiency
+
+        workers.forEach(worker => {
+            let bgColor, textColor, borderColor, flashClass = '';
+            let isPreAlertOverdue = false; 
+
+            const anticipatedTimeDT = new Date(worker['Anticipated Departure Time']);
+             if (worker['Alarm Status'] === 'ON SITE' && now > anticipatedTimeDT) {
+                  isPreAlertOverdue = true;
+                  borderColor = 'border-amber-500'; // Amber border for pre-alert
+                  textColor = 'text-amber-100'; 
+             }
+
+            switch(worker['Alarm Status']) {
+                case 'DURESS_CODE_ACTIVATED': bgColor = 'bg-purple-800'; textColor = 'text-white'; borderColor = 'border-purple-400'; flashClass = 'flashing-duress'; break;
+                case 'EMERGENCY - PANIC BUTTON': bgColor = 'bg-red-700'; textColor = 'text-white'; borderColor = 'border-red-400'; flashClass = 'flashing-alert'; break;
+                case 'ESCALATION_SENT':
+                case 'EMAIL_3_SENT': case 'EMAIL_2_SENT': case 'EMAIL_1_SENT':
+                case 'ALERT SENT': case 'MISSED_CHECKIN': bgColor = 'bg-yellow-700'; textColor = 'text-white'; borderColor = 'border-yellow-400'; break;
+                default: 
+                     if (!isPreAlertOverdue) {
+                         bgColor = 'bg-gray-700'; textColor = 'text-gray-300'; borderColor = 'border-transparent';
+                     } else {
+                         bgColor = 'bg-gray-700'; 
+                     }
+            }
+            
+            const anticipatedTimeStr = anticipatedTimeDT.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // --- === BATTERY FIX (v2.14) === ---
+            let batteryLevel = worker['Battery Level']; // Read from the new column
+            let batteryColor = 'text-gray-400';
+            
+            if (batteryLevel !== null && batteryLevel !== "") {
+                 batteryLevel = parseInt(batteryLevel, 10);
+                 if (batteryLevel < 15) batteryColor = 'text-red-400 animate-pulse';
+                 else if (batteryLevel < 30) batteryColor = 'text-yellow-400';
+                 else batteryColor = 'text-green-400';
+            } else {
+                batteryLevel = null; // Ensure it's null if empty
+            }
+            // --- === END BATTERY FIX === ---
+
+             const batteryHtml = batteryLevel !== null 
+                ? `<span class="text-xs ${batteryColor} ml-2 whitespace-nowrap">(<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="inline-block relative -top-px"><path d="M18.5 7H22v10H18.5l-2.5-5zM4 17V7h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4z"></path></svg>${batteryLevel}%)</span>` 
+                : '<span class="text-xs text-gray-500 ml-2 whitespace-nowrap">(Batt: N/A)</span>'; 
+
+            const gpsTimestamp = worker['GPS Timestamp'];
+            const gpsAge = formatTimeAgo(gpsTimestamp);
+            let gpsStaleClass = '';
+            const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
+            if (worker['Location Name'] === 'Travelling' && (!gpsTimestamp || new Date(gpsTimestamp).getTime() < thirtyMinutesAgo)) {
+                 gpsStaleClass = 'gps-stale'; 
+            }
+             const gpsHtml = `<span class="text-xs text-gray-400 ${gpsStaleClass} whitespace-nowrap">GPS: ${gpsAge}</span>`; 
+
+
+            let locationLinkHtml = '';
+            let contactDetailsHtml = '';
+            let resolveButtonHtml = '';
+            const isAlertStatus = worker['Alarm Status'] !== 'ON SITE';
+            
+             const callButtonHtml = worker['Worker Phone Number'] ? `<a href="tel:${worker['Worker Phone Number']}" title="Call ${worker['Worker Name']}" class="ml-2 inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block relative -top-px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Call</a>` : '';
+
+
+            if (isAlertStatus) {
+                let linkUrl = '#';
+                let linkTitle = 'Location not available';
+                if (worker['Last Known GPS']) { linkUrl = 'http://maps.google.com/maps?q=' + worker['Last Known GPS']; linkTitle = 'View last known GPS location'; } 
+                else if (worker['Location Address']) { linkUrl = 'http://maps.google.com/maps?q=' + encodeURIComponent(worker['Location Address']); linkTitle = 'View initial location address'; }
+                
+                if(linkUrl !== '#') {
+                    locationLinkHtml = '<a href="' + linkUrl + '" target="_blank" title="' + linkTitle + '" class="mt-1 inline-flex items-center text-sm text-blue-300 hover:text-blue-200"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>View Location</a>';
+                }
+                
+                contactDetailsHtml = '<div class="mt-3 pt-3 border-t border-white/20 text-xs space-y-1">' +
+                    '<p><strong class="text-gray-300">Worker:</strong> <a href="tel:' + worker['Worker Phone Number'] + '" class="text-blue-300 hover:text-blue-200">' + worker['Worker Phone Number'] + '</a>' + callButtonHtml + '</p>' +
+                    '<p><strong class="text-gray-300">Contact:</strong> ' + worker['Emergency Contact Name'] + ' - <a href="tel:' + worker['Emergency Contact Number'] + '" class="text-blue-300 hover:text-blue-200">' + worker['Emergency Contact Number'] + '</a></p>' +
+                '</div>';
+
+                resolveButtonHtml = '<button type="button" class="resolve-alert-btn mt-3 w-full bg-green-700 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-sm" data-name="' + worker['Worker Name'] + '" data-arrival="' + worker['Arrival Time'] + '">Manually Resolve Alert</button>';
+            } else {
+                 contactDetailsHtml = '<div class="mt-3 pt-3 border-t border-white/20 text-xs space-y-1">' +
+                    '<p><strong class="text-gray-300">Worker:</strong> <a href="tel:' + worker['Worker Phone Number'] + '" class="text-blue-300 hover:text-blue-200">' + worker['Worker Phone Number'] + '</a>' + callButtonHtml + '</p>' +
+                 '</div>';
+            }
+            
+            
+            const card = document.createElement('div');
+            card.className = `p-4 rounded-lg shadow-md flex flex-col ${bgColor} ${textColor} border-2 ${borderColor} ${flashClass} ${isPreAlertOverdue ? 'border-pre-alert' : ''}`;
+            
+            card.innerHTML = `
+                <div class="flex-1 min-w-0">
+                     <div class="flex justify-between items-start mb-1">
+                         <p class="font-bold text-xl truncate pr-2">${worker['Worker Name']}${batteryHtml}</p>
+                         <div class="text-right flex-shrink-0">
+                             <p class="font-semibold text-lg">${isPreAlertOverdue ? '<span class="text-xs bg-amber-600 px-1.5 py-0.5 rounded mr-1">OVERDUE</span>' : ''}${worker['Alarm Status'].replace(/_/g, ' ')}</p>
+                             <p class="text-sm">Due: ${anticipatedTimeStr}</p>
+                         </div>
+                     </div>
+                     <p class="text-sm truncate mb-1">${worker['Location Name']}</p>
+                     <div class="flex justify-between items-center text-xs">
+                         ${locationLinkHtml || '<div></div>'} 
+                         ${gpsHtml}
+                    </div>
+                </div>
+                 ${contactDetailsHtml}
+                 ${resolveButtonHtml}
+            `;
+            
+            workerList.appendChild(card);
+        });
+    }
+
+
+    function addLogEntry(message) {
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const logEntry = { timestamp, message };
+
+        sessionLogHistory.unshift(logEntry); 
+        if (sessionLogHistory.length > MAX_LOG_ENTRIES) {
+            sessionLogHistory.pop(); 
+        }
+
+        if (logPanel) {
+            const entryElement = document.createElement('p');
+            entryElement.innerHTML = `<span class="text-gray-500">${timestamp}:</span> ${message}`;
+            logPanel.prepend(entryElement); 
+            while (logPanel.children.length > MAX_LOG_ENTRIES) {
+                logPanel.removeChild(logPanel.lastChild);
+            }
+        }
+    }
+
+    function checkNotificationPermission() {
+        if (!('Notification' in window)) {
+            console.warn("Browser does not support desktop notifications.");
+            if (notificationStatus) notificationStatus.textContent = 'N/A';
+            if (enableNotificationsBtn) enableNotificationsBtn.classList.add('hidden');
+            return;
+        }
+        notificationPermission = Notification.permission;
+        if (notificationPermission === 'granted') {
+             if (notificationStatus) notificationStatus.textContent = 'Enabled';
+             if (enableNotificationsBtn) enableNotificationsBtn.classList.add('hidden'); 
+        } else if (notificationPermission === 'denied') {
+             if (notificationStatus) notificationStatus.textContent = 'Blocked';
+             if (enableNotificationsBtn) enableNotificationsBtn.classList.add('hidden'); 
+        } else {
+             if (notificationStatus) notificationStatus.textContent = 'Disabled';
+             if (enableNotificationsBtn) enableNotificationsBtn.classList.remove('hidden'); 
+        }
+    }
+
+    function requestNotificationPermission() {
+         if (!('Notification' in window)) return;
+         Notification.requestPermission().then(permission => {
+             notificationPermission = permission;
+             checkNotificationPermission(); // Update UI
+             if (permission === 'granted') {
+                 addLogEntry("Desktop notifications enabled.");
+                 new Notification("OTG Monitor", { body: "Desktop notifications are now enabled!" });
+             } else {
+                 addLogEntry("Desktop notification permission denied.");
+             }
+         });
+    }
+
+    function showNotification(workerName, status, location) {
+        if (notificationPermission !== 'granted') return;
+        
+        const title = `OTG ALERT: ${workerName}`;
+        const options = {
+            body: `Status changed to: ${status.replace(/_/g, ' ')}\nLocation: ${location || 'N/A'}`, 
+            icon: '%%LOGO_URL%%', 
+            tag: `otg-alert-${workerName}` 
+        };
+
+        const notification = new Notification(title, options);
+        notification.onclick = () => { // Focus window on click
+             window.focus();
+             notification.close();
+        };
+        setTimeout(notification.close.bind(notification), 15000); 
+    }
+
+
+    function checkForNewAlerts(workers) {
+        const currentActiveKeys = new Set();
+        const now = new Date(); 
+
+        workers.forEach(worker => {
+            const key = worker['Worker Name'] + '-' + worker['Arrival Time'];
+            currentActiveKeys.add(key); 
+            const oldStatusObj = lastKnownStatuses[key];
+            const oldStatus = oldStatusObj ? oldStatusObj.status : null;
+            const newStatus = worker['Alarm Status'];
+            
+            if (!oldStatus) {
+                 addLogEntry(`Worker active: ${worker['Worker Name']} at ${worker['Location Name']}.`);
+            }
+
+             lastKnownStatuses[key] = {
+                 status: newStatus,
+                 location: worker['Location Name'] 
+             }; 
+
+            if (newStatus !== oldStatus) {
+                 addLogEntry(`Status change for ${worker['Worker Name']}: ${oldStatus || 'None'} -> ${newStatus}.`);
+
+                const criticalAlerts = ['ALERT SENT', 'EMERGENCY - PANIC BUTTON', 'DURESS_CODE_ACTIVATED', 'MISSED_CHECKIN'];
+                const updateAlerts = ['EMAIL_1_SENT', 'EMAIL_2_SENT', 'EMAIL_3_SENT', 'ESCALATION_SENT'];
+        
+                if (criticalAlerts.includes(newStatus) && (!oldStatus || !criticalAlerts.includes(oldStatus))) {
+                    console.log("NEW CRITICAL ALERT:", worker);
+                    playAlarm(worker);
+                    showNotification(worker['Worker Name'], newStatus, worker['Location Name']); 
+                } else if (updateAlerts.includes(newStatus)) {
+                    console.log("ALERT STATUS UPDATE:", worker);
+                    playUpdateSound();
+                }
+            }
+        });
+
+         Object.keys(lastKnownStatuses).forEach(key => {
+             if (!currentActiveKeys.has(key)) {
+                 const workerName = key.split('-')[0]; 
+                 addLogEntry(`Worker resolved/departed: ${workerName}.`);
+                 delete lastKnownStatuses[key]; 
+             }
+         });
+    }
+     
+    
+    function acknowledgeAlert() {
+        const arrivalTime = acknowledgeBtn.dataset.arrivalTime;
+        const workerName = acknowledgeBtn.dataset.workerName;
+        stopAlarm(); 
+        addLogEntry(`Alert acknowledged for ${workerName}.`); 
+
+        const data = {
+            "Arrival Time": arrivalTime,
+            "Worker Name": workerName,
+            Notes: 'Alert acknowledged by monitor at ' + new Date().toISOString()
+        };
+        const formData = new FormData();
+        for (const key in data) { formData.append(key, data[key]); }
+        
+        fetch(sheetUrl, {
+            method: 'POST', mode: 'no-cors', body: new URLSearchParams(formData)
+        }).then(() => {
+             console.log("Acknowledgement sent.");
+             fetchData(); 
+        }).catch(err => console.error("Failed to send ack:", err));
+    }
+    
+    function sendResolveAlert(workerName, arrivalTime) {
+        addLogEntry(`Manual resolve initiated for ${workerName}.`); 
+        const data = {
+            "Arrival Time": arrivalTime,
+            "Worker Name": workerName,
+            "Alarm Status": "MONITOR_CLEARED_ALERT",
+            "Notes": 'Alert manually resolved by monitor at ' + new Date().toISOString()
+        };
+        const formData = new FormData();
+        for (const key in data) { formData.append(key, data[key]); }
+        
+        fetch(sheetUrl, {
+            method: 'POST', mode: 'no-cors', body: new URLSearchParams(formData)
+        }).then(() => {
+            console.log("Resolve alert sent.");
+            addLogEntry(`Manual resolve confirmed for ${workerName}.`); 
+            hideModals();
+            fetchData();
+        }).catch(err => {
+            console.error("Failed to send resolve alert:", err);
+             addLogEntry(`Manual resolve failed for ${workerName}: ${err}`); 
+            showAlert("Error", "Could not send resolve alert. Check connection.");
+        });
+    }
+    
+    function initEventListeners() {
+        document.body.addEventListener('pointerdown', initAudio, { once: true });
+        
+        if (saveUrlBtn) { saveUrlBtn.addEventListener('click', () => { 
+             const url = googleSheetUrlInput.value.trim(); 
+             const key = secretKeyInput.value.trim();
+             if (url && key) { 
+                 // Test connection before saving
+                 statusIndicator.classList.remove('bg-green-500', 'bg-red-500');
+                 statusIndicator.classList.add('bg-yellow-500');
+                 const testCallbackName = 'jsonp_callback_' + Date.now();
+                 const testScript = document.createElement('script');
+                 
+                 window[testCallbackName] = function(data) {
+                      delete window[testCallbackName];
+                      document.body.removeChild(testScript);
+                      if (data.status === 'error' && data.message.includes('Access Denied')) {
+                           showAlert("Access Denied", "The Secret Key is incorrect.");
+                           statusIndicator.classList.remove('bg-yellow-500');
+                           statusIndicator.classList.add('bg-red-500');
+                      } else if (Array.isArray(data)) {
+                           // Success! Save and proceed
+                           localStorage.setItem('lwsMonitorUrl', url); 
+                           localStorage.setItem('lwsMonitorKey', key);
+                           sheetUrl = url; 
+                           secretKey = key;
+                           navigate('dashboard'); 
+                           fetchData(); 
+                           if (pollingInterval) clearInterval(pollingInterval);
+                           pollingInterval = setInterval(fetchData, 15000);
+                      } else {
+                           showAlert("Connection Error", "Received unexpected data. Check the URL.");
+                            statusIndicator.classList.remove('bg-yellow-500');
+                           statusIndicator.classList.add('bg-red-500');
+                      }
+                 };
+
+                  testScript.src = url + '?callback=' + testCallbackName + '&token=' + encodeURIComponent(key);
+                  testScript.onerror = () => {
+                       delete window[testCallbackName];
+                       document.body.removeChild(testScript);
+                       showAlert("Connection Failed", "Could not connect to the URL. Please check the URL and ensure the script is deployed correctly.");
+                       statusIndicator.classList.remove('bg-yellow-500');
+                       statusIndicator.classList.add('bg-red-500');
+                  };
+                  document.body.appendChild(testScript);
+
+             } else {
+                 showAlert("Missing Info", "Please provide both the Web App URL and the Secret Key.");
+             }
+        }); }
+        if (resetUrlBtn) { resetUrlBtn.addEventListener('click', () => { 
+            if (confirm("Are you sure you want to reset the URL and Secret Key?")) {
+                localStorage.removeItem('lwsMonitorUrl');
+                localStorage.removeItem('lwsMonitorKey');
+                sheetUrl = '';
+                secretKey = '';
+                clearInterval(pollingInterval);
+                navigate('setup');
+                if (googleSheetUrlInput) googleSheetUrlInput.value = '';
+                if (secretKeyInput) secretKeyInput.value = '';
+            }
+        }); }
+        
+        acknowledgeBtn.addEventListener('click', acknowledgeAlert);
+        closeWarningBtn.addEventListener('click', () => sizeWarningBanner.classList.add('hidden'));
+        alertModalOkBtn.addEventListener('click', hideModals);
+        if (enableNotificationsBtn) enableNotificationsBtn.addEventListener('click', requestNotificationPermission); 
+        
+        workerList.addEventListener('click', (e) => {
+            const resolveBtn = e.target.closest('.resolve-alert-btn');
+            if (resolveBtn) {
+                const workerName = resolveBtn.dataset.name;
+                const arrivalTime = resolveBtn.dataset.arrival;
+                showModal(resolveModal, () => {
+                    resolveWorkerName.textContent = workerName;
+                    resolveConfirmInput.value = '';
+                    confirmResolveBtn.dataset.name = workerName;
+                    confirmResolveBtn.dataset.arrival = arrivalTime;
+                    resolveConfirmInput.focus();
+                });
+            }
+            if (e.target.closest('a[href^="tel:"]')) { e.stopPropagation(); }
+        });
+
+        cancelResolveBtn.addEventListener('click', hideModals);
+        
+        confirmResolveBtn.addEventListener('click', () => {
+            const expectedName = confirmResolveBtn.dataset.name;
+            const arrivalTime = confirmResolveBtn.dataset.arrival;
+            const typedName = resolveConfirmInput.value;
+            if (typedName.trim() === expectedName) {
+                sendResolveAlert(expectedName, arrivalTime);
+            } else {
+                showAlert("Incorrect Name", "The name you typed does not match. Alert not resolved.");
+                resolveConfirmInput.value = '';
+                resolveConfirmInput.focus();
+            }
+        });
+    }
+
+    function init() {
+        // Find existing elements
+        setupPage = document.getElementById('setupPage');
+        dashboardPage = document.getElementById('dashboardPage');
+        googleSheetUrlInput = document.getElementById('googleSheetUrl');
+        secretKeyInput = document.getElementById('secretKey');
+        saveUrlBtn = document.getElementById('saveUrlBtn');
+        resetUrlBtn = document.getElementById('resetUrlBtn');
+        workerList = document.getElementById('workerList');
+        statusIndicator = document.getElementById('statusIndicator');
+        lastUpdatedEl = document.getElementById('lastUpdated');
+        alertOverlay = document.getElementById('alertOverlay');
+        alertDetails = document.getElementById('alertDetails');
+        acknowledgeBtn = document.getElementById('acknowledgeBtn');
+        modalBackdrop = document.getElementById('modalBackdrop');
+        alertModal = document.getElementById('alertModal');
+        alertModalTitle = document.getElementById('alertModalTitle');
+        alertModalMessage = document.getElementById('alertModalMessage');
+        alertModalOkBtn = document.getElementById('alertModalOkBtn');
+        sizeWarningBanner = document.getElementById('sizeWarningBanner');
+        closeWarningBtn = document.getElementById('closeWarningBtn');
+        resolveModal = document.getElementById('resolveModal');
+        resolveWorkerName = document.getElementById('resolveWorkerName');
+        resolveConfirmInput = document.getElementById('resolveConfirmInput');
+        cancelResolveBtn = document.getElementById('cancelResolveBtn');
+        confirmResolveBtn = document.getElementById('confirmResolveBtn');
+        // --- Find NEW Elements ---
+        logPanel = document.getElementById('logPanel');
+        enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+        notificationStatus = document.getElementById('notificationStatus');
+        
+        // --- MONITOR_LOGIN_LOGIC_START ---
+        // This block is replaced by the setup tool with hardcoded values and direct navigation
+        sheetUrl = localStorage.getItem('lwsMonitorUrl');
+        secretKey = localStorage.getItem('lwsMonitorKey');
+        
+        initEventListeners();
+        checkNotificationPermission(); // Check permission status on load
+        addLogEntry("Monitor session started."); // Initial log entry
+        
+        if (sheetUrl && secretKey) {
+            if (googleSheetUrlInput) googleSheetUrlInput.value = sheetUrl;
+            if (secretKeyInput) secretKeyInput.value = secretKey;
+            navigate('dashboard');
+            fetchData();
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(fetchData, 15000);
+        } else {
+             if (setupPage) navigate('setup'); 
+             else { 
+                  document.body.innerHTML = '<div class="p-8 text-center text-red-400">Error: Monitor App not configured correctly. Please regenerate using the setup tool.</div>';
+             }
+        }
+        // --- MONITOR_LOGIN_LOGIC_END ---
+    }
+    
+    window.addEventListener('load', init);
+</script>
+</body>
+</html>
